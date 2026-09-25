@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Maimaps – Free Custom Map Maker & Style Editor | PNG, JPG & SVG Export</title>
+<meta name="description" content="Maimaps is a free browser-based map maker. Recolor water, land, roads and buildings, switch between 2D and 3D, then export your custom map as a PNG, JPG, or an editable SVG for Illustrator.">
+<meta name="keywords" content="map maker, custom map generator, map style editor, export map as svg, export map as png, 3d map maker, free map tool">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Maimaps">
+<meta name="theme-color" content="#ff5b1f">
+<!-- Replace with your live URL once this page is hosted -->
+<link rel="canonical" href="https://your-domain.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Maimaps">
+<meta property="og:title" content="Maimaps – Free Custom Map Maker & Style Editor">
+<meta property="og:description" content="Recolor water, land, roads and buildings, switch between 2D and 3D, then export your custom map as PNG, JPG, or an editable SVG.">
+<meta property="og:url" content="https://your-domain.com/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Maimaps – Free Custom Map Maker & Style Editor">
+<meta name="twitter:description" content="Recolor water, land, roads and buildings, switch between 2D and 3D, then export your custom map as PNG, JPG, or an editable SVG.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%BA%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Maimaps",
+  "description": "A free browser-based map maker for recoloring, styling and exporting custom maps as PNG, JPG, or editable SVG.",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Any (runs in a web browser)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.js"></script>
+<style>
+  :root{
+    --ink:#171614; --muted:#8a857a; --line:#e6e2d6; --panel:#fbfaf6;
+    --accent:#ff5b1f; --accent-ink:#171614; --radius:4px;
+    --mono:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;margin:0;overscroll-behavior:none;}
+  body{font-family:var(--mono);color:var(--ink);background:#f6f4ee;
+    background-image:radial-gradient(circle,#e8e4d8 1px,transparent 1px);background-size:20px 20px;}
+  button{font:inherit;cursor:pointer;touch-action:manipulation;}
+  .app{display:flex;height:100vh;height:100dvh;min-height:400px;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+
+  .panel{width:320px;flex:none;background:var(--panel);border-right:1.5px solid var(--ink);display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+  .panel-head{padding:18px 20px 16px;border-bottom:1.5px solid var(--ink);}
+  .panel-head h1{font-size:14px;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:8px;}
+  .panel-head h1::before{content:"";width:9px;height:9px;background:var(--accent);border:1px solid var(--ink);flex:none;border-radius:1px;}
+  .panel-head p{font-size:11.5px;color:var(--muted);margin:6px 0 0;}
+  section{padding:16px 20px;border-bottom:1px solid var(--line);}
+  section h2{font-size:10.5px;font-weight:700;color:var(--muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:.06em;}
+
+  .search-row{display:flex;gap:6px;}
+  .search-row input{flex:1;}
+  input[type="text"], input[type="number"]{font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--ink);border-radius:var(--radius);background:#fff;color:var(--ink);width:100%;}
+  input:focus, select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .search-row button{border:1px solid var(--ink);background:var(--accent);color:var(--accent-ink);border-radius:var(--radius);padding:0 16px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+
+  .color-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12.5px;gap:10px;}
+  .color-row input[type="color"]{width:26px;height:26px;border:1px solid var(--ink);border-radius:3px;padding:0;background:none;cursor:pointer;flex:none;}
+  .color-controls{display:flex;align-items:center;gap:8px;flex:none;}
+  .color-controls input[type="range"]{width:62px;accent-color:var(--accent);}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12.5px;}
+  .view-toggle{display:flex;gap:0;padding:0;background:#fff;border:1px solid var(--ink);border-radius:var(--radius);margin-top:8px;overflow:hidden;}
+  .view-toggle button{flex:1;border:0;background:transparent;color:var(--muted);padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  .view-toggle button + button{border-left:1px solid var(--ink);}
+  .view-toggle button.active{background:var(--accent);color:var(--accent-ink);}
+  .tilt-row{margin-top:10px;}
+  .tilt-row.hidden{display:none;}
+  .tilt-row-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;}
+  .tilt-row input[type="range"]{width:100%;accent-color:var(--accent);}
+  .cat-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0 4px 14px;font-size:12px;color:var(--muted);}
+  .switch{position:relative;display:inline-block;width:34px;height:19px;flex:none;}
+  .switch.small{width:28px;height:16px;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;inset:0;background:#fff;border:1px solid var(--ink);border-radius:999px;transition:.15s;}
+  .slider::before{content:"";position:absolute;height:11px;width:11px;left:2px;top:2px;background:var(--ink);border-radius:50%;transition:.15s;}
+  .switch.small .slider::before{height:9px;width:9px;top:2px;left:2px;}
+  .switch input:checked + .slider{background:var(--accent);}
+  .switch input:checked + .slider::before{transform:translateX(15px);background:var(--ink);}
+  .switch.small input:checked + .slider::before{transform:translateX(12px);}
+
+  .ratio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+  .ratio-grid button{padding:8px 0;font-size:11px;font-weight:700;border:1px solid var(--ink);background:#fff;color:var(--ink);border-radius:var(--radius);}
+  .ratio-grid button.active{background:var(--accent);color:var(--accent-ink);}
+
+  .preset-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px;}
+  .preset-grid button{padding:8px 4px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;border:1px solid var(--ink);background:#fff;color:var(--ink);border-radius:var(--radius);}
+  .preset-grid button.active{background:var(--accent);color:var(--accent-ink);}
+  .custom-ratio{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .custom-ratio.hidden{display:none;}
+  label.field-label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+  .dims-hint{font-size:12px;color:var(--muted);margin-top:6px;}
+
+  .export-btn{margin:16px 20px 6px;padding:12px 0;border:1px solid var(--ink);border-radius:var(--radius);background:var(--ink);color:var(--accent);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+  .export-btn:disabled{opacity:.6;cursor:default;}
+  .ghost-btn{margin:0 20px 8px;padding:9px 0;border:1px solid var(--ink);border-radius:var(--radius);background:#fff;color:var(--ink);font-size:11.5px;font-weight:700;}
+  .reset-link{background:none;border:none;color:var(--muted);font-size:11.5px;text-decoration:underline;margin:0 20px 18px;text-align:left;padding:0;}
+
+  .stage{flex:1;display:flex;align-items:center;justify-content:center;padding:32px;min-width:0;position:relative;}
+  #previewWrap{background:#fff;border:1.5px solid var(--ink);box-shadow:4px 4px 0 var(--ink);border-radius:3px;overflow:hidden;max-width:100%;max-height:100%;}
+  #map{width:100%;height:100%;background:#fff;transition:background-color .25s ease;
+    background-image:linear-gradient(45deg,#e2ded0 25%,transparent 25%),linear-gradient(-45deg,#e2ded0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e2ded0 75%),linear-gradient(-45deg,transparent 75%,#e2ded0 75%);
+    background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;}
+
+  #codePanel{position:absolute;top:0;right:0;bottom:0;width:380px;max-width:90vw;background:#fff;border-left:1.5px solid var(--ink);box-shadow:-8px 0 24px rgba(0,0,0,.12);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .18s ease;}
+  #codePanel.open{transform:translateX(0);}
+  #codePanel .code-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--ink);}
+  #codePanel .code-head h2{font-size:11.5px;margin:0;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+  #codePanel .code-head button{border:none;background:none;font-size:16px;color:var(--muted);line-height:1;}
+  #codeOutput{flex:1;border:none;resize:none;padding:14px;font-family:var(--mono);font-size:11.5px;line-height:1.5;color:var(--ink);}
+  #codePanel .code-actions{display:flex;gap:8px;margin:0 14px 14px;}
+  #codePanel .code-actions button{flex:1;border:1px solid var(--ink);border-radius:var(--radius);padding:10px 0;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  #copyBtn{background:var(--accent);color:var(--ink);}
+  #applyBtn{background:#fff;color:var(--ink);}
+  .code-hint{font-size:11px;color:var(--muted);padding:0 14px 10px;}
+
+  @media (max-width:720px){
+    .app{flex-direction:column;}
+    .panel{width:100%;height:46dvh;min-height:260px;border-right:none;border-bottom:1.5px solid var(--ink);}
+    .stage{padding:12px;flex:1;min-height:0;}
+    #codePanel{width:100vw;max-width:100vw;}
+    /* iOS zooms the page on focus if a field's font-size is under 16px */
+    input[type="text"], input[type="number"]{font-size:16px;padding:10px 10px;}
+    .search-row button{padding:0 16px;}
+    /* larger touch targets */
+    .switch{width:42px;height:24px;}
+    .switch .slider::before{height:18px;width:18px;}
+    .switch input:checked + .slider::before{transform:translateX(18px);}
+    .switch.small{width:34px;height:19px;}
+    .switch.small .slider::before{height:13px;width:13px;}
+    .switch.small input:checked + .slider::before{transform:translateX(15px);}
+    .color-row input[type="color"]{width:32px;height:32px;}
+    .color-controls input[type="range"]{width:80px;}
+    .ratio-grid button, .preset-grid button{padding:10px 4px;min-height:40px;}
+    .view-toggle button{padding:10px;}
+    .export-btn{padding:13px 0;}
+  }
+  @media (pointer:coarse){
+    .cat-row{padding-top:6px;padding-bottom:6px;}
+  }
+  @media (max-width:380px){
+    .panel-head{padding:14px 14px 4px;}
+    section{padding:12px 14px;}
+    .export-btn{margin:12px 14px 6px;}
+    .ghost-btn{margin:0 14px 8px;}
+    .reset-link{margin:0 14px 14px;}
+  }
+
+  /* ---- crop modal ---- */
+  .crop-overlay{position:fixed;inset:0;background:rgba(23,22,20,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));}
+  .crop-overlay.open{display:flex;}
+  .crop-modal{background:#fff;border:1.5px solid var(--ink);border-radius:4px;box-shadow:6px 6px 0 var(--ink);max-width:min(94vw,980px);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+  .crop-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1.5px solid var(--ink);flex:none;}
+  .crop-head h2{font-size:12.5px;margin:0;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+  .crop-head button{border:none;background:none;font-size:18px;color:var(--muted);line-height:1;padding:2px;}
+  .crop-stage{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px;min-height:0;
+    background-image:linear-gradient(45deg,#eceada 25%,transparent 25%),linear-gradient(-45deg,#eceada 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eceada 75%),linear-gradient(-45deg,transparent 75%,#eceada 75%);
+    background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;background-color:#f6f4ee;}
+  .crop-img-wrap{position:relative;line-height:0;touch-action:none;}
+  .crop-img-wrap img{display:block;max-width:min(80vw,860px);max-height:60vh;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+  .crop-box{position:absolute;border:1.5px dashed var(--accent);box-shadow:0 0 0 9999px rgba(23,22,20,.55);cursor:move;touch-action:none;}
+  .crop-handle{position:absolute;width:15px;height:15px;background:var(--accent);border:1.5px solid var(--ink);border-radius:2px;touch-action:none;}
+  .crop-handle[data-h="nw"]{left:-8px;top:-8px;cursor:nwse-resize;}
+  .crop-handle[data-h="ne"]{right:-8px;top:-8px;cursor:nesw-resize;}
+  .crop-handle[data-h="sw"]{left:-8px;bottom:-8px;cursor:nesw-resize;}
+  .crop-handle[data-h="se"]{right:-8px;bottom:-8px;cursor:nwse-resize;}
+  .crop-handle[data-h="n"]{left:50%;top:-8px;transform:translateX(-50%);cursor:ns-resize;}
+  .crop-handle[data-h="s"]{left:50%;bottom:-8px;transform:translateX(-50%);cursor:ns-resize;}
+  .crop-handle[data-h="e"]{right:-8px;top:50%;transform:translateY(-50%);cursor:ew-resize;}
+  .crop-handle[data-h="w"]{left:-8px;top:50%;transform:translateY(-50%);cursor:ew-resize;}
+  .crop-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-top:1.5px solid var(--ink);flex-wrap:wrap;flex:none;}
+  .crop-dims{font-size:12px;color:var(--muted);}
+  .crop-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  .crop-actions button{border:1px solid var(--ink);border-radius:var(--radius);padding:9px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;background:#fff;color:var(--ink);}
+  #cropDownloadBtn{background:var(--ink);color:var(--accent);}
+  #cropDownloadPngBtn{background:var(--accent);color:var(--ink);}
+  @media (max-width:560px){
+    .crop-foot{justify-content:center;}
+    .crop-actions{width:100%;}
+    .crop-actions button{flex:1 1 40%;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <div class="panel-head">
+      <h1>Maimaps</h1>
+      <p>Style the map, then export it as an image.</p>
+    </div>
+
+    <section>
+      <h2>Location</h2>
+      <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Search a place…">
+        <button id="searchBtn">Go</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Map view</h2>
+      <div class="view-toggle" role="group" aria-label="Map view">
+        <button id="view2dBtn" type="button" data-view="2d" class="active">2D</button>
+        <button id="view3dBtn" type="button" data-view="3d">3D</button>
+      </div>
+      <div class="tilt-row hidden" id="tiltRow">
+        <div class="tilt-row-label"><span>Tilt angle</span><span id="tiltValueLabel">45°</span></div>
+        <input type="range" id="tiltRange" min="0" max="85" value="45">
+      </div>
+    </section>
+
+    <section>
+      <h2>Colors</h2>
+      <div class="preset-grid" id="colorPresetGrid" role="group" aria-label="Color tone presets">
+        <button type="button" data-preset="google">Google Maps</button>
+        <button type="button" data-preset="classic">Classic</button>
+        <button type="button" data-preset="dark">Dark mode</button>
+        <button type="button" data-preset="grayscale">Grayscale</button>
+      </div>
+      <div class="color-row"><span>Water</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityWater" min="0" max="100" value="100"><input type="color" id="colorWater" value="#aadaff"></div></div>
+      <div class="color-row"><span>Land</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityLand" min="0" max="100" value="100"><input type="color" id="colorLand" value="#f2efe9"></div></div>
+      <div class="color-row"><span>Parks &amp; greenery</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityPark" min="0" max="100" value="100"><input type="color" id="colorPark" value="#c9e8ca"></div></div>
+      <div class="color-row"><span>Streets</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityStreet" min="0" max="100" value="100"><input type="color" id="colorStreet" value="#ffffff"></div></div>
+      <div class="color-row"><span>Highways</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityHighway" min="0" max="100" value="100"><input type="color" id="colorHighway" value="#f8c967"></div></div>
+      <div class="color-row"><span>Railways</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityRailway" min="0" max="100" value="100"><input type="color" id="colorRailway" value="#bfbfbf"></div></div>
+      <div class="color-row"><span>Buildings</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityBuilding" min="0" max="100" value="100"><input type="color" id="colorBuilding" value="#e8e4dd"></div></div>
+      <div class="color-row"><span>Admin borders</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityAdmin" min="0" max="100" value="100"><input type="color" id="colorAdmin" value="#b0b0b0"></div></div>
+      <div class="color-row"><span>Other features</span><div class="color-controls"><input type="range" class="opacity-slider" id="opacityOther" min="0" max="100" value="100"><input type="color" id="colorOther" value="#dedad2"></div></div>
+      <p class="dims-hint" style="margin-top:2px;">Covers everything else the style draws (paths, aeroways, ferries, pitches, etc.) that isn't already one of the categories above.</p>
+      <p class="dims-hint" style="margin-top:8px;">Each slider controls that row's own transparency.</p>
+    </section>
+
+    <section>
+      <h2>Labels</h2>
+      <div class="toggle-row">
+        <span>Place &amp; road names</span>
+        <label class="switch"><input type="checkbox" id="toggleLabels" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Points of interest</span>
+        <label class="switch"><input type="checkbox" id="togglePoi" checked><span class="slider"></span></label>
+      </div>
+      <div id="poiCategoryList"></div>
+    </section>
+
+    <section>
+      <h2>Export size</h2>
+      <div class="ratio-grid">
+        <button data-ratio="1:1">Square</button>
+        <button data-ratio="4:3">4:3</button>
+        <button data-ratio="3:4">3:4</button>
+        <button data-ratio="16:9" class="active">16:9</button>
+        <button data-ratio="9:16">9:16</button>
+        <button data-ratio="custom">Custom</button>
+      </div>
+      <div class="custom-ratio hidden" id="customRatioRow">
+        <input type="number" id="ratioW" value="4" min="1">
+        <span>:</span>
+        <input type="number" id="ratioH" value="3" min="1">
+      </div>
+      <label class="field-label" for="exportWidth">Export width (px) — max 4000</label>
+      <input type="number" id="exportWidth" value="4000" min="200" max="4000" step="50">
+      <div class="dims-hint" id="dimsHint"></div>
+    </section>
+
+    <button class="export-btn" id="exportBtn">Export Image</button>
+    <p class="dims-hint" style="margin:0 20px 10px;">Renders at full size, then lets you crop before downloading.</p>
+    <button class="ghost-btn" id="codeToggleBtn">View style code</button>
+    <button class="reset-link" id="resetBtn">Reset to defaults</button>
+  </aside>
+
+  <main class="stage">
+    <div id="previewWrap"><div id="map"></div></div>
+    <div id="codePanel">
+      <div class="code-head"><h2>Style settings</h2><button id="closeCodeBtn">✕</button></div>
+      <textarea id="codeOutput" spellcheck="false"></textarea>
+      <div class="code-hint">Copy this to save your style, or paste a previously copied one and hit Apply.</div>
+      <div class="code-actions"><button id="copyBtn">Copy</button><button id="applyBtn">Apply</button></div>
+    </div>
+  </main>
+</div>
+
+<div class="crop-overlay" id="cropOverlay">
+  <div class="crop-modal">
+    <div class="crop-head">
+      <h2>Crop your export</h2>
+      <button id="cropCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="crop-stage">
+      <div class="crop-img-wrap" id="cropImgWrap">
+        <img id="cropImage" alt="Rendered map export">
+        <div class="crop-box" id="cropBox">
+          <div class="crop-handle" data-h="nw"></div>
+          <div class="crop-handle" data-h="n"></div>
+          <div class="crop-handle" data-h="ne"></div>
+          <div class="crop-handle" data-h="e"></div>
+          <div class="crop-handle" data-h="se"></div>
+          <div class="crop-handle" data-h="s"></div>
+          <div class="crop-handle" data-h="sw"></div>
+          <div class="crop-handle" data-h="w"></div>
+        </div>
+      </div>
+    </div>
+    <div class="crop-foot">
+      <div class="crop-dims" id="cropDims">Crop: — × — px</div>
+      <div class="crop-actions">
+        <button id="cropResetBtn">Reset crop</button>
+        <button id="cropCancelBtn">Cancel</button>
+        <button id="cropDownloadBtn">Download JPG</button>
+        <button id="cropDownloadPngBtn" title="Keeps any transparent colors; JPG flattens them onto white">Download PNG</button>
+        <button id="cropDownloadSvgBtn" title="Editable layers (Water, Streets, Buildings…) for Illustrator or Inkscape — an approximation, not a pixel-exact copy">Download SVG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+const COLOR_PRESETS = {
+  google:    { water:'#aadaff', land:'#f2efe9', park:'#c9e8ca', street:'#ffffff', highway:'#f8c967', railway:'#bfbfbf', building:'#e8e4dd', admin:'#b0b0b0', other:'#dedad2' },
+  classic:   { water:'#b9c6c2', land:'#f2ede0', park:'#cdd3ae', street:'#ffffff', highway:'#ff5b1f', railway:'#928d80', building:'#e4ddcb', admin:'#6f6a5f', other:'#ded6c1' },
+  dark:      { water:'#17263c', land:'#242f3e', park:'#263c3f', street:'#38414e', highway:'#746855', railway:'#4b6878', building:'#2f3948', admin:'#4b6878', other:'#3b4552' },
+  grayscale: { water:'#c6c6c6', land:'#cfcfcf', park:'#e0e0de', street:'#b5b5b5', highway:'#383838', railway:'#adadad', building:'#737373', admin:'#707070', other:'#dcdcda' },
+};
+const DEFAULT_COLORS = COLOR_PRESETS.google;
+
+const POI_CATEGORIES = {
+  food:    { label:'Food & drink',        classes:['restaurant','fast_food','cafe','bar','beer','ice_cream','alcohol_shop','pub','biergarten','food_court'] },
+  shop:    { label:'Shops',               classes:['shop','clothing_store','grocery','laundry','marketplace','supermarket'] },
+  parks:   { label:'Parks & recreation',  classes:['park','golf','swimming','stadium','playground','pitch','sports_centre','garden','picnic_site','camp_site','campsite','zoo'] },
+  transit: { label:'Transit & travel',    classes:['bus','rail','railway','aerialway','harbor','ferry_terminal','entrance','lodging','fuel','car','parking','taxi'] },
+  culture: { label:'Culture & community', classes:['museum','art_gallery','library','town_hall','place_of_worship','castle','attraction','viewpoint','monument','embassy','courthouse','post','school','college','university'] },
+  health:  { label:'Health & safety',     classes:['hospital','pharmacy','doctor','dentist','police','fire_station','clinic'] },
+  money:   { label:'Money & services',    classes:['atm','bank','office'] },
+};
+let poiCategoryState = Object.fromEntries(Object.keys(POI_CATEGORIES).map(k => [k, true]));
+
+const buckets = { water:[], land:[], park:[], street:[], highway:[], railway:[], building:[], admin:[], label:[], poi:[], other:[] };
+const originalPoiFilters = {};
+/* Types whose color can actually be repainted with setPaintProperty.
+   Symbol layers (text/icons) are handled separately via the label/poi
+   buckets, so anything symbol-typed that falls through to 'other' is
+   skipped rather than added to a bucket with no visible effect. */
+const PAINTABLE_TYPES = new Set(['fill', 'line', 'fill-extrusion', 'background', 'circle']);
+
+function classify(id){
+  if (id === 'airport') return 'poi';
+  if (/label|_name|highway-name|highway-shield|road_shield/.test(id)) return 'label';
+  if (id.includes('poi')) return 'poi';
+  if (id === 'background') return 'land';
+  if (id.includes('landcover_wood') || id.includes('landcover_grass')) return 'park';
+  if (id.includes('park') || id.includes('golf') || id.includes('pitch') || id.includes('cemetery')) return 'park';
+  if (id.includes('landuse') || id.includes('landcover') || id.includes('glacier') || id.includes('sand') || id.includes('wetland')) return 'land';
+  if (id.includes('water') || id.includes('waterway') || id.includes('ferry') || id.includes('pier')) return 'water';
+  if (id === 'building' || id === 'building-3d' || id.startsWith('building')) return 'building';
+  if (id.startsWith('boundary')) return 'admin';
+  if (id.includes('aeroway') || id.includes('runway') || id.includes('taxiway')) return 'highway';
+  if (id.includes('motorway') || id.includes('trunk')) return 'highway';
+  if (id.includes('rail') || id.includes('transit') || id.includes('aerialway')) return 'railway';
+  if (id.startsWith('road_') || id.startsWith('tunnel_') || id.startsWith('bridge_') || id.startsWith('path')){
+    if (id.includes('arrow') || id.includes('pattern')) return 'other';
+    return 'street';
+  }
+  /* Anything not matched above (pedestrian plazas, ice, tunnels/bridges with
+     unusual ids, future layers the style adds, etc.) still gets bucketed so
+     it shows up as an editable "Other features" swatch instead of being
+     silently left uncustomizable. */
+  return 'other';
+}
+
+let mapView = '2d';
+let currentPitch = 45;
+const buildingExtrusion = {};
+const map = new maplibregl.Map({ container:'map', style: STYLE_URL, center:[-73.9855, 40.7580], zoom:11.5, pitch: mapView === '3d' ? currentPitch : 0 });
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+const tiltRow = document.getElementById('tiltRow');
+const tiltRange = document.getElementById('tiltRange');
+const tiltValueLabel = document.getElementById('tiltValueLabel');
+const mapEl = document.getElementById('map');
+
+/* 2D = flat mercator, no pitch, no building extrusion.
+   3D = globe projection (renders as a 3D earth when zoomed out, and
+   automatically flattens to a normal 2D-looking surface once you zoom
+   in close), adjustable pitch, and real building extrusions. */
+function setBuildingsFlat(flat){
+  Object.entries(buildingExtrusion).forEach(([id, orig]) => {
+    try{ map.setPaintProperty(id, 'fill-extrusion-height', flat ? 0 : orig.height); }catch(e){}
+    try{ map.setPaintProperty(id, 'fill-extrusion-base', flat ? 0 : orig.base); }catch(e){}
+  });
+}
+function setMapView(view, opts){
+  opts = opts || {};
+  mapView = view;
+  document.querySelectorAll('.view-toggle button').forEach(b => b.classList.toggle('active', b.dataset.view === mapView));
+  tiltRow.classList.toggle('hidden', mapView !== '3d');
+  mapEl.style.backgroundColor = mapView === '3d' ? '#111111' : '#ffffff';
+  try{ map.setProjection({ type: mapView === '3d' ? 'globe' : 'mercator' }); }catch(e){}
+  setBuildingsFlat(mapView === '2d');
+  map.easeTo({ pitch: mapView === '3d' ? currentPitch : 0, duration: opts.duration === undefined ? 350 : opts.duration });
+  if (!opts.silent) refreshCodePanel();
+}
+document.querySelectorAll('.view-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => setMapView(btn.dataset.view));
+});
+tiltRange.addEventListener('input', () => {
+  currentPitch = parseInt(tiltRange.value) || 0;
+  tiltValueLabel.textContent = currentPitch + '°';
+  if (mapView === '3d') map.setPitch(currentPitch);
+  refreshCodePanel();
+});
+
+map.on('load', () => {
+  map.getStyle().layers.forEach(l => {
+    const cat = classify(l.id);
+    if (cat === 'other' && !PAINTABLE_TYPES.has(l.type)) return; // skip symbol/etc layers with no color effect
+    if (buckets[cat]) buckets[cat].push({ id: l.id, type: l.type });
+    if (l.type === 'fill' && l.paint && l.paint['fill-pattern'] !== undefined){
+      // Some landcover layers (forest/wood, cemetery, sand, etc.) fill with a
+      // repeating icon sprite rather than a solid color. That pattern ignores
+      // fill-color entirely and, being sparse, reads as a patchy/"missing"
+      // texture once zoomed in. Drop the pattern so the flat, user-editable
+      // color renders solid instead.
+      try{ map.setPaintProperty(l.id, 'fill-pattern', undefined); }catch(e){}
+    }
+    if (l.type === 'fill-extrusion'){
+      buildingExtrusion[l.id] = {
+        height: (l.paint && l.paint['fill-extrusion-height'] !== undefined) ? l.paint['fill-extrusion-height'] : 0,
+        base: (l.paint && l.paint['fill-extrusion-base'] !== undefined) ? l.paint['fill-extrusion-base'] : 0,
+      };
+      // The base style renders buildings semi-translucent; make 3D buildings
+      // read as solid, opaque blocks instead.
+      try{ map.setPaintProperty(l.id, 'fill-extrusion-opacity', 1); }catch(e){}
+      try{ map.setPaintProperty(l.id, 'fill-extrusion-vertical-gradient', false); }catch(e){}
+    }
+    if (cat === 'highway' && l.type === 'line'){
+      // The base style's motorway/trunk lines widen aggressively at low zoom,
+      // which reads as an overly bold highway when zoomed out. Scale the
+      // whole width curve down instead of overriding it with a fixed value,
+      // so it still thickens on zoom-in, just less dramatically.
+      try{
+        const orig = map.getPaintProperty(l.id, 'line-width');
+        if (orig !== undefined) map.setPaintProperty(l.id, 'line-width', ['*', orig, 0.6]);
+      }catch(e){}
+    }
+  });
+  ['poi_r20','poi_r7','poi_r1','poi_transit'].forEach(id => {
+    try { originalPoiFilters[id] = map.getFilter(id) || null; } catch(e){ originalPoiFilters[id] = null; }
+  });
+  renderPoiCategories();
+  Object.entries(colorInputs).forEach(([bucket, input]) => applyColor(bucket, input.value));
+  Object.keys(colorOpacities).forEach(bucket => applyBucketOpacity(bucket, colorOpacities[bucket]));
+  syncPresetButtons();
+  setMapView(mapView, { silent: true, duration: 0 });
+  refreshCodePanel();
+});
+
+function applyColor(bucket, color){
+  (buckets[bucket]||[]).forEach(({ id, type }) => {
+    try{
+      if (type === 'line') map.setPaintProperty(id, 'line-color', color);
+      else if (type === 'fill') map.setPaintProperty(id, 'fill-color', color);
+      else if (type === 'fill-extrusion') map.setPaintProperty(id, 'fill-extrusion-color', color);
+      else if (type === 'background') map.setPaintProperty(id, 'background-color', color);
+    }catch(e){}
+  });
+}
+const colorOpacities = { water:1, land:1, park:1, street:1, highway:1, railway:1, building:1, admin:1, other:1 };
+function applyBucketOpacity(bucket, value){
+  colorOpacities[bucket] = Math.max(0, Math.min(1, value));
+  (buckets[bucket]||[]).forEach(({ id, type }) => {
+    try{
+      if (type === 'line') map.setPaintProperty(id, 'line-opacity', colorOpacities[bucket]);
+      else if (type === 'fill') map.setPaintProperty(id, 'fill-opacity', colorOpacities[bucket]);
+      else if (type === 'fill-extrusion') map.setPaintProperty(id, 'fill-extrusion-opacity', colorOpacities[bucket]);
+      else if (type === 'background') map.setPaintProperty(id, 'background-opacity', colorOpacities[bucket]);
+    }catch(e){}
+  });
+}
+function setVisible(bucket, visible){
+  (buckets[bucket]||[]).forEach(({ id }) => {
+    try{ map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none'); }catch(e){}
+  });
+}
+
+const colorInputs = {
+  water: document.getElementById('colorWater'), land: document.getElementById('colorLand'),
+  park: document.getElementById('colorPark'), street: document.getElementById('colorStreet'),
+  highway: document.getElementById('colorHighway'), railway: document.getElementById('colorRailway'),
+  building: document.getElementById('colorBuilding'), admin: document.getElementById('colorAdmin'),
+  other: document.getElementById('colorOther'),
+};
+function applyColorPreset(key){
+  const preset = COLOR_PRESETS[key];
+  if (!preset) return;
+  Object.entries(preset).forEach(([bucket, color]) => {
+    if (colorInputs[bucket]){ colorInputs[bucket].value = color; applyColor(bucket, color); }
+  });
+  syncPresetButtons();
+  refreshCodePanel();
+}
+function syncPresetButtons(){
+  const current = {};
+  Object.entries(colorInputs).forEach(([k, input]) => current[k] = input.value.toLowerCase());
+  document.querySelectorAll('#colorPresetGrid button').forEach(btn => {
+    const preset = COLOR_PRESETS[btn.dataset.preset];
+    const matches = preset && Object.keys(preset).every(k => preset[k].toLowerCase() === current[k]);
+    btn.classList.toggle('active', !!matches);
+  });
+}
+document.querySelectorAll('#colorPresetGrid button').forEach(btn => {
+  btn.addEventListener('click', () => applyColorPreset(btn.dataset.preset));
+});
+Object.entries(colorInputs).forEach(([bucket, input]) => {
+  input.addEventListener('input', () => { applyColor(bucket, input.value); syncPresetButtons(); refreshCodePanel(); });
+});
+
+const opacityInputs = {
+  water: document.getElementById('opacityWater'), land: document.getElementById('opacityLand'),
+  park: document.getElementById('opacityPark'), street: document.getElementById('opacityStreet'),
+  highway: document.getElementById('opacityHighway'), railway: document.getElementById('opacityRailway'),
+  building: document.getElementById('opacityBuilding'), admin: document.getElementById('opacityAdmin'),
+  other: document.getElementById('opacityOther'),
+};
+Object.entries(opacityInputs).forEach(([bucket, input]) => {
+  input.addEventListener('input', () => { applyBucketOpacity(bucket, (parseInt(input.value, 10) || 0) / 100); refreshCodePanel(); });
+});
+
+document.getElementById('toggleLabels').addEventListener('change', e => { setVisible('label', e.target.checked); refreshCodePanel(); });
+document.getElementById('togglePoi').addEventListener('change', () => { updatePoiVisibility(); refreshCodePanel(); });
+
+/* ---- POI categories ---- */
+function renderPoiCategories(){
+  const el = document.getElementById('poiCategoryList');
+  el.innerHTML = Object.entries(POI_CATEGORIES).map(([key, cat]) => `
+    <div class="cat-row">
+      <span>${cat.label}</span>
+      <label class="switch small"><input type="checkbox" data-cat="${key}" ${poiCategoryState[key]?'checked':''}><span class="slider"></span></label>
+    </div>`).join('');
+  el.querySelectorAll('input[data-cat]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      poiCategoryState[cb.dataset.cat] = cb.checked;
+      updatePoiVisibility();
+      refreshCodePanel();
+    });
+  });
+}
+function applyPoiFilters(){
+  const hidden = [];
+  Object.entries(poiCategoryState).forEach(([key, on]) => { if (!on) hidden.push(...POI_CATEGORIES[key].classes); });
+  ['poi_r20','poi_r7','poi_r1','poi_transit'].forEach(id => {
+    const base = originalPoiFilters[id];
+    if (!base) return;
+    try{
+      map.setFilter(id, hidden.length ? ['all', base, ['!', ['match', ['get','class'], hidden, true, false]]] : base);
+    }catch(e){}
+  });
+}
+function updatePoiVisibility(){
+  const masterOn = document.getElementById('togglePoi').checked;
+  buckets.poi.forEach(({ id }) => {
+    if (id === 'airport'){
+      try{ map.setLayoutProperty(id, 'visibility', (masterOn && poiCategoryState.transit) ? 'visible' : 'none'); }catch(e){}
+    } else {
+      try{ map.setLayoutProperty(id, 'visibility', masterOn ? 'visible' : 'none'); }catch(e){}
+    }
+  });
+  applyPoiFilters();
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  Object.entries(colorInputs).forEach(([bucket, input]) => { input.value = DEFAULT_COLORS[bucket]; applyColor(bucket, DEFAULT_COLORS[bucket]); });
+  syncPresetButtons();
+  Object.entries(opacityInputs).forEach(([bucket, input]) => { input.value = 100; applyBucketOpacity(bucket, 1); });
+  currentPitch = 45;
+  tiltRange.value = 45;
+  tiltValueLabel.textContent = '45°';
+  setMapView('2d', { silent: true, duration: 0 });
+  document.getElementById('toggleLabels').checked = true;
+  document.getElementById('togglePoi').checked = true;
+  setVisible('label', true);
+  Object.keys(poiCategoryState).forEach(k => poiCategoryState[k] = true);
+  renderPoiCategories();
+  updatePoiVisibility();
+  document.querySelectorAll('.ratio-grid button').forEach(b => b.classList.toggle('active', b.dataset.ratio === '16:9'));
+  customMode = false; customRow.classList.add('hidden');
+  setRatio(16, 9);
+  refreshCodePanel();
+});
+
+/* ---- location search (OpenStreetMap Nominatim, no key required) ---- */
+let searchAbort = null;
+async function searchPlace(){
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  const btn = document.getElementById('searchBtn');
+  const label = btn.textContent;
+  if (searchAbort) searchAbort.abort();
+  searchAbort = new AbortController();
+  btn.disabled = true; btn.textContent = '…';
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`, { signal: searchAbort.signal });
+    const data = await res.json();
+    if (data && data[0]) map.flyTo({ center: [parseFloat(data[0].lon), parseFloat(data[0].lat)], zoom: 12 });
+  }catch(e){ /* ignore aborts/network errors */ }
+  finally{ btn.disabled = false; btn.textContent = label; }
+}
+document.getElementById('searchBtn').addEventListener('click', searchPlace);
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); searchPlace(); } });
+
+/* ---- aspect ratio + resolution ---- */
+const previewWrap = document.getElementById('previewWrap');
+const ratioButtons = document.querySelectorAll('.ratio-grid button');
+const customRow = document.getElementById('customRatioRow');
+const ratioWInput = document.getElementById('ratioW');
+const ratioHInput = document.getElementById('ratioH');
+const exportWidthInput = document.getElementById('exportWidth');
+let ratio = { w: 16, h: 9 };
+let customMode = false;
+
+function sizePreview(){
+  const stageEl = document.querySelector('.stage');
+  const maxW = stageEl.clientWidth - 64;
+  const maxH = stageEl.clientHeight - 64;
+  const exportW = Math.max(200, Math.min(4000, parseInt(exportWidthInput.value) || 4000));
+  /* Scale the preview box relative to where exportW sits in its 200–4000
+     range (not to its raw pixel value), so moving the slider/number always
+     visibly changes the preview size on screen — a literal pixel cap only
+     had an effect once exportW dropped below the available stage space,
+     which for most values (e.g. 1600–4000 on a normal window) never
+     kicked in and made the control look like it did nothing. */
+  const frac = (exportW - 200) / (4000 - 200);
+  const scale = 0.3 + 0.7 * frac; // smallest export ≈ 30% size, largest = fills the stage
+  let w = maxW * scale, h = w * ratio.h / ratio.w;
+  if (h > maxH * scale){ h = maxH * scale; w = h * ratio.w / ratio.h; }
+  previewWrap.style.width = Math.max(w, 160) + 'px';
+  previewWrap.style.height = Math.max(h, 120) + 'px';
+  requestAnimationFrame(() => map.resize());
+}
+function updateDimsHint(){
+  const w = Math.max(200, Math.min(4000, parseInt(exportWidthInput.value) || 4000));
+  const h = Math.round(w * ratio.h / ratio.w);
+  document.getElementById('dimsHint').textContent = `Output: ${w} × ${h} px (max width 4000px)`;
+}
+function setRatio(w, h){ ratio = { w, h }; sizePreview(); updateDimsHint(); refreshCodePanel(); }
+
+ratioButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    ratioButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (btn.dataset.ratio === 'custom'){
+      customMode = true; customRow.classList.remove('hidden');
+      setRatio(parseFloat(ratioWInput.value) || 1, parseFloat(ratioHInput.value) || 1);
+    } else {
+      customMode = false; customRow.classList.add('hidden');
+      const [w, h] = btn.dataset.ratio.split(':').map(Number);
+      setRatio(w, h);
+    }
+  });
+});
+[ratioWInput, ratioHInput].forEach(input => {
+  input.addEventListener('input', () => { if (customMode) setRatio(parseFloat(ratioWInput.value) || 1, parseFloat(ratioHInput.value) || 1); });
+});
+exportWidthInput.addEventListener('input', () => { sizePreview(); updateDimsHint(); refreshCodePanel(); });
+
+/* debounced resize: avoids thrashing map.resize() during mobile address-bar
+   show/hide or rapid orientation changes */
+let resizeRaf = null;
+function scheduleSizePreview(){
+  if (resizeRaf) cancelAnimationFrame(resizeRaf);
+  resizeRaf = requestAnimationFrame(sizePreview);
+}
+window.addEventListener('resize', scheduleSizePreview, { passive: true });
+window.addEventListener('orientationchange', scheduleSizePreview, { passive: true });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleSizePreview, { passive: true });
+new ResizeObserver(scheduleSizePreview).observe(document.querySelector('.stage'));
+setRatio(16, 9);
+
+/* ---- style code panel ---- */
+function buildConfig(){
+  const colors = {};
+  Object.entries(colorInputs).forEach(([k, input]) => colors[k] = input.value);
+  const opacities = {};
+  Object.entries(opacityInputs).forEach(([k, input]) => opacities[k] = (parseInt(input.value, 10) || 0) / 100);
+  return {
+    colors,
+    opacities,
+    view: mapView,
+    pitch: currentPitch,
+    labels: document.getElementById('toggleLabels').checked,
+    poi: { master: document.getElementById('togglePoi').checked, categories: { ...poiCategoryState } },
+    export: { ratio: { ...ratio }, width: parseInt(exportWidthInput.value) || 4000 },
+  };
+}
+function refreshCodePanel(){ document.getElementById('codeOutput').value = JSON.stringify(buildConfig(), null, 2); }
+function applyConfig(cfg){
+  if (cfg.colors){
+    Object.entries(cfg.colors).forEach(([k, v]) => { if (colorInputs[k]){ colorInputs[k].value = v; applyColor(k, v); } });
+    syncPresetButtons();
+  }
+  if (cfg.opacities){
+    Object.entries(cfg.opacities).forEach(([k, v]) => {
+      if (opacityInputs[k] && typeof v === 'number'){
+        const pct = Math.round(Math.max(0, Math.min(1, v)) * 100);
+        opacityInputs[k].value = pct;
+        applyBucketOpacity(k, pct / 100);
+      }
+    });
+  }
+  if (typeof cfg.pitch === 'number'){
+    currentPitch = Math.max(0, Math.min(85, cfg.pitch));
+    tiltRange.value = currentPitch;
+    tiltValueLabel.textContent = currentPitch + '°';
+  }
+  if (cfg.view === '2d' || cfg.view === '3d'){
+    setMapView(cfg.view, { silent: true, duration: 0 });
+  } else if (typeof cfg.pitch === 'number' && mapView === '3d'){
+    map.setPitch(currentPitch);
+  }
+  if (typeof cfg.labels === 'boolean'){ document.getElementById('toggleLabels').checked = cfg.labels; setVisible('label', cfg.labels); }
+  if (cfg.poi){
+    if (typeof cfg.poi.master === 'boolean') document.getElementById('togglePoi').checked = cfg.poi.master;
+    if (cfg.poi.categories){
+      Object.entries(cfg.poi.categories).forEach(([k, v]) => { if (k in poiCategoryState) poiCategoryState[k] = !!v; });
+      renderPoiCategories();
+    }
+    updatePoiVisibility();
+  }
+  if (cfg.export){
+    if (cfg.export.ratio) setRatio(cfg.export.ratio.w || 4, cfg.export.ratio.h || 3);
+    if (cfg.export.width){ exportWidthInput.value = cfg.export.width; sizePreview(); updateDimsHint(); }
+  }
+  refreshCodePanel();
+}
+document.getElementById('codeToggleBtn').addEventListener('click', () => { refreshCodePanel(); document.getElementById('codePanel').classList.add('open'); });
+document.getElementById('closeCodeBtn').addEventListener('click', () => document.getElementById('codePanel').classList.remove('open'));
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  const text = document.getElementById('codeOutput').value;
+  const btn = document.getElementById('copyBtn');
+  try{ await navigator.clipboard.writeText(text); } catch(e){ document.getElementById('codeOutput').select(); document.execCommand('copy'); }
+  btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1200);
+});
+document.getElementById('applyBtn').addEventListener('click', () => {
+  try{ applyConfig(JSON.parse(document.getElementById('codeOutput').value)); }
+  catch(e){ alert('That JSON could not be read.'); }
+});
+
+/* ---- SVG (layered, editable) export ----
+   Groups shapes by category into named <g> layers (Water, Streets, Buildings,
+   etc.) using the map's actual vector features, so the file opens in
+   Illustrator/Inkscape with each category as its own editable layer. This is
+   an approximation, not a pixel clone of the raster export: line widths are
+   simplified fixed values (not the original's zoom-driven curves), 3D
+   buildings export as flat footprints, label/POI text is placed at a single
+   point per feature rather than following road curves, and only whatever is
+   currently loaded in view is included. */
+const SVG_GROUP_ID = { water:'Water', land:'Land', park:'Parks-Greenery', street:'Streets', highway:'Highways', railway:'Railways', building:'Buildings', admin:'Admin-Borders', other:'Other-Features', label:'Labels', poi:'POI' };
+const SVG_GROUP_ORDER = ['land','park','water','other','street','railway','highway','building','admin','poi','label'];
+const SVG_STROKE_WIDTH = { water:2, land:1, park:1, street:2.5, highway:5, railway:2, building:1, admin:1.5, other:1.5 }; // px at a 1000px-wide export; simplified, not the original's data-driven widths
+
+function svgEscape(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+function svgPathFromGeometry(pMap, geometry){
+  const pt = c => { const p = pMap.project(c); return p.x.toFixed(1) + ',' + p.y.toFixed(1); };
+  const ring = r => 'M' + r.map(pt).join('L') + 'Z';
+  if (geometry.type === 'Polygon') return geometry.coordinates.map(ring).join(' ');
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates.map(poly => poly.map(ring).join(' ')).join(' ');
+  if (geometry.type === 'LineString') return 'M' + geometry.coordinates.map(pt).join('L');
+  if (geometry.type === 'MultiLineString') return geometry.coordinates.map(line => 'M' + line.map(pt).join('L')).join(' ');
+  return '';
+}
+function svgLabelText(props){
+  if (!props) return '';
+  return props.name || props['name:en'] || props.name_en || props.name_int || props.ref || '';
+}
+function buildSvgLayers(pMap, w, h){
+  const groups = {}; SVG_GROUP_ORDER.forEach(k => groups[k] = []);
+  const scale = w / 1000;
+  pMap.getStyle().layers.forEach(layer => {
+    if (layer.layout && layer.layout.visibility === 'none') return; // respects toggled-off labels/POI/etc.
+    const bucket = classify(layer.id);
+    if (!groups[bucket]) return;
+
+    if (layer.type === 'background'){
+      // Background layers cover the whole canvas with no queryable features.
+      const color = colorInputs.land ? colorInputs.land.value : '#f2efe9';
+      const opacity = colorOpacities.land !== undefined ? colorOpacities.land : 1;
+      groups.land.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="${color}" fill-opacity="${opacity}"/>`);
+      return;
+    }
+
+    let features;
+    try{ features = pMap.queryRenderedFeatures({ layers: [layer.id] }); }catch(e){ return; }
+    if (!features || !features.length) return;
+
+    if (bucket === 'label' || bucket === 'poi'){
+      features.forEach(f => {
+        const g = f.geometry; if (!g) return;
+        let c;
+        if (g.type === 'Point') c = g.coordinates;
+        else if (g.type === 'LineString') c = g.coordinates[Math.floor(g.coordinates.length / 2)];
+        else if (g.type === 'MultiLineString' && g.coordinates[0]) c = g.coordinates[0][Math.floor(g.coordinates[0].length / 2)];
+        if (!c) return;
+        const text = svgLabelText(f.properties);
+        if (!text) return;
+        const p = pMap.project(c);
+        const fontSize = (bucket === 'poi' ? 9 : 11) * scale;
+        groups[bucket].push(`<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" font-size="${fontSize.toFixed(1)}" font-family="sans-serif" text-anchor="middle" fill="#171614">${svgEscape(text)}</text>`);
+      });
+      return;
+    }
+
+    const color = colorInputs[bucket] ? colorInputs[bucket].value : '#888888';
+    const opacity = colorOpacities[bucket] !== undefined ? colorOpacities[bucket] : 1;
+    features.forEach(f => {
+      const g = f.geometry; if (!g) return;
+      if (g.type === 'Point' || g.type === 'MultiPoint'){
+        const pts = g.type === 'Point' ? [g.coordinates] : g.coordinates;
+        pts.forEach(c => {
+          const p = pMap.project(c);
+          groups[bucket].push(`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(3 * scale).toFixed(1)}" fill="${color}" fill-opacity="${opacity}"/>`);
+        });
+        return;
+      }
+      const d = svgPathFromGeometry(pMap, g);
+      if (!d) return;
+      if (layer.type === 'line'){
+        const sw = ((SVG_STROKE_WIDTH[bucket] || 1.5) * scale).toFixed(2);
+        groups[bucket].push(`<path d="${d}" fill="none" stroke="${color}" stroke-opacity="${opacity}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>`);
+      } else {
+        groups[bucket].push(`<path d="${d}" fill="${color}" fill-opacity="${opacity}" fill-rule="evenodd"/>`);
+      }
+    });
+  });
+  return groups;
+}
+function assembleSvg(groups, w, h, crop){
+  const vb = crop ? `${crop.x.toFixed(1)} ${crop.y.toFixed(1)} ${crop.w.toFixed(1)} ${crop.h.toFixed(1)}` : `0 0 ${w} ${h}`;
+  const outW = crop ? crop.w : w, outH = crop ? crop.h : h;
+  const body = SVG_GROUP_ORDER.map(k => `<g id="${SVG_GROUP_ID[k]}">\n${groups[k].join('\n')}\n</g>`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${outW.toFixed(0)}" height="${outH.toFixed(0)}">\n${body}\n</svg>\n`;
+}
+
+/* ---- export to JPG ---- */
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('exportBtn');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Rendering…';
+
+  const w = Math.max(200, Math.min(4000, parseInt(exportWidthInput.value) || 4000));
+  const h = Math.round(w * ratio.h / ratio.w);
+
+  /* The live preview map is shown in a CSS-sized box (e.g. ~800px wide on
+     screen), but we render the export at up to 4000px wide. Zoom level
+     controls meters-per-pixel, not area-per-container, so simply reusing
+     the preview's zoom on a much larger container would show a much wider
+     (more zoomed-out) area than what's actually previewed. Bump the zoom
+     to compensate for the container-width ratio so the exported image
+     frames the same geographic extent the preview shows, just at higher
+     resolution. */
+  const previewMapWidth = document.getElementById('map').clientWidth || w;
+  const zoomAdjust = Math.log2(w / previewMapWidth);
+  const exportZoom = map.getZoom() + zoomAdjust;
+
+  const hidden = document.createElement('div');
+  hidden.style.position = 'fixed'; hidden.style.left = '-99999px'; hidden.style.top = '0';
+  hidden.style.width = w + 'px'; hidden.style.height = h + 'px';
+  document.body.appendChild(hidden);
+
+  const exportMap = new maplibregl.Map({
+    container: hidden, style: map.getStyle(), center: map.getCenter(), zoom: exportZoom,
+    bearing: map.getBearing(), pitch: map.getPitch(), interactive: false, preserveDrawingBuffer: true, fadeDuration: 0,
+  });
+  exportMap.once('load', () => { try{ exportMap.setProjection(map.getProjection()); }catch(e){} });
+
+  exportMap.once('idle', () => {
+    try{
+      const src = exportMap.getCanvas();
+      const out = document.createElement('canvas');
+      out.width = src.width; out.height = src.height;
+      const ctx = out.getContext('2d');
+      // No white fill here — keep the real alpha channel so any colors with
+      // reduced opacity stay transparent. JPG download flattens onto white
+      // later (JPG has no alpha channel); PNG download keeps it as-is.
+      ctx.drawImage(src, 0, 0);
+      cropSvgGroups = buildSvgLayers(exportMap, w, h);
+      cropSvgW = w; cropSvgH = h;
+      openCropModal(out);
+    }catch(err){ alert('Export failed: ' + err.message); }
+    finally{ exportMap.remove(); hidden.remove(); btn.disabled = false; btn.textContent = label; }
+  });
+});
+
+/* ---- crop modal: adjust the framing of the rendered image before download ---- */
+const cropOverlay = document.getElementById('cropOverlay');
+const cropImage = document.getElementById('cropImage');
+const cropImgWrap = document.getElementById('cropImgWrap');
+const cropBox = document.getElementById('cropBox');
+const cropDimsEl = document.getElementById('cropDims');
+let cropSourceCanvas = null;
+let cropSvgGroups = null; // per-category SVG markup built alongside the raster canvas
+let cropSvgW = 0, cropSvgH = 0;
+let cropFrac = { x: 0, y: 0, w: 1, h: 1 }; // crop rect as fractions of the rendered image
+let dragState = null;
+
+function clamp(v, min, max){ return Math.min(Math.max(v, min), max); }
+
+function openCropModal(sourceCanvas){
+  cropSourceCanvas = sourceCanvas;
+  cropFrac = { x: 0, y: 0, w: 1, h: 1 };
+  cropImage.onload = () => layoutCropBox();
+  cropImage.src = sourceCanvas.toDataURL('image/png');
+  cropOverlay.classList.add('open');
+}
+function closeCropModal(){
+  cropOverlay.classList.remove('open');
+  cropSourceCanvas = null;
+  cropSvgGroups = null;
+  cropImage.removeAttribute('src');
+}
+function layoutCropBox(){
+  cropBox.style.left = (cropFrac.x * 100) + '%';
+  cropBox.style.top = (cropFrac.y * 100) + '%';
+  cropBox.style.width = (cropFrac.w * 100) + '%';
+  cropBox.style.height = (cropFrac.h * 100) + '%';
+  if (!cropSourceCanvas) return;
+  const w = Math.round(cropFrac.w * cropSourceCanvas.width);
+  const h = Math.round(cropFrac.h * cropSourceCanvas.height);
+  cropDimsEl.textContent = `Crop: ${w} × ${h} px`;
+}
+function startDrag(e, mode){
+  e.preventDefault();
+  const rect = cropImgWrap.getBoundingClientRect();
+  dragState = { mode, startX: e.clientX, startY: e.clientY, rect, orig: { ...cropFrac } };
+  window.addEventListener('pointermove', onDrag);
+  window.addEventListener('pointerup', endDrag);
+}
+function onDrag(e){
+  if (!dragState) return;
+  const dx = (e.clientX - dragState.startX) / dragState.rect.width;
+  const dy = (e.clientY - dragState.startY) / dragState.rect.height;
+  const o = dragState.orig;
+  const minSize = 0.06;
+  let { x, y, w, h } = o;
+  if (dragState.mode === 'move'){
+    x = clamp(o.x + dx, 0, 1 - o.w);
+    y = clamp(o.y + dy, 0, 1 - o.h);
+  } else {
+    if (dragState.mode.includes('e')) w = clamp(o.w + dx, minSize, 1 - o.x);
+    if (dragState.mode.includes('s')) h = clamp(o.h + dy, minSize, 1 - o.y);
+    if (dragState.mode.includes('w')){ const nx = clamp(o.x + dx, 0, o.x + o.w - minSize); w = o.w + (o.x - nx); x = nx; }
+    if (dragState.mode.includes('n')){ const ny = clamp(o.y + dy, 0, o.y + o.h - minSize); h = o.h + (o.y - ny); y = ny; }
+  }
+  cropFrac = { x, y, w, h };
+  layoutCropBox();
+}
+function endDrag(){
+  dragState = null;
+  window.removeEventListener('pointermove', onDrag);
+  window.removeEventListener('pointerup', endDrag);
+}
+cropBox.addEventListener('pointerdown', e => { if (e.target === cropBox) startDrag(e, 'move'); });
+cropBox.querySelectorAll('.crop-handle').forEach(h => {
+  h.addEventListener('pointerdown', e => { e.stopPropagation(); startDrag(e, h.dataset.h); });
+});
+document.getElementById('cropResetBtn').addEventListener('click', () => { cropFrac = { x: 0, y: 0, w: 1, h: 1 }; layoutCropBox(); });
+document.getElementById('cropCancelBtn').addEventListener('click', closeCropModal);
+document.getElementById('cropCloseBtn').addEventListener('click', closeCropModal);
+cropOverlay.addEventListener('click', e => { if (e.target === cropOverlay) closeCropModal(); });
+function getCropRect(){
+  const sx = Math.round(cropFrac.x * cropSourceCanvas.width);
+  const sy = Math.round(cropFrac.y * cropSourceCanvas.height);
+  const sw = Math.max(1, Math.round(cropFrac.w * cropSourceCanvas.width));
+  const sh = Math.max(1, Math.round(cropFrac.h * cropSourceCanvas.height));
+  return { sx, sy, sw, sh };
+}
+function downloadImage(mimeType, quality, filename, flattenOnWhite){
+  if (!cropSourceCanvas) return;
+  const { sx, sy, sw, sh } = getCropRect();
+  const finalCanvas = document.createElement('canvas');
+  finalCanvas.width = sw; finalCanvas.height = sh;
+  const ctx = finalCanvas.getContext('2d');
+  if (flattenOnWhite){
+    // JPG has no alpha channel — flatten any transparent colors onto white
+    // first so edges don't pick up a black fringe.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, sw, sh);
+  }
+  ctx.drawImage(cropSourceCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+  const a = document.createElement('a');
+  a.href = finalCanvas.toDataURL(mimeType, quality);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  closeCropModal();
+}
+document.getElementById('cropDownloadBtn').addEventListener('click', () => {
+  downloadImage('image/jpeg', 0.92, 'maimaps-export.jpg', true);
+});
+document.getElementById('cropDownloadPngBtn').addEventListener('click', () => {
+  downloadImage('image/png', undefined, 'maimaps-export.png', false); // keeps transparent colors intact
+});
+document.getElementById('cropDownloadSvgBtn').addEventListener('click', () => {
+  if (!cropSvgGroups) return;
+  const crop = { x: cropFrac.x * cropSvgW, y: cropFrac.y * cropSvgH, w: cropFrac.w * cropSvgW, h: cropFrac.h * cropSvgH };
+  const svgText = assembleSvg(cropSvgGroups, cropSvgW, cropSvgH, crop);
+  const blob = new Blob([svgText], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'maimaps-export.svg';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  closeCropModal();
+});
+</script>
+</body>
+</html>
